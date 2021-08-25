@@ -84,6 +84,7 @@ class Hotellink_bookings extends MY_Controller
     }
 
 	function hotellink_get_bookings($company_id){
+	    $message = '';
     	$get_token_data = $this->Hotellink_model->get_token(null, $company_id, $this->ota_key);
     	$booking_response = array();
 
@@ -131,95 +132,103 @@ class Hotellink_bookings extends MY_Controller
 
 	            $hotellink_booking_id = $reservation->BookingId;
 	            $hotellink_booking_source = isset($reservation->BookingSource->Name) && $reservation->BookingSource->Name ? $reservation->BookingSource->Name : "";
-	            $room = $reservation->Rooms[0];
-				$hotellink_room_type_id = $room->RoomId;
-	            $minical_room_type_id = $this->Hotellink_model->get_minical_room_type_id($hotellink_room_type_id, $hotellink_x_company_id);
+	            $room_index = 1;
+	            foreach ($reservation->Rooms as $room) {
+                    $hotellink_room_type_id = $room->RoomId;
+                    $minical_room_type_id = $this->Hotellink_model->get_minical_room_type_id($hotellink_room_type_id, $hotellink_x_company_id);
 
-	            switch ((string)$reservation->NotificationType) {
-					case 'New':
-						$booking_type = 'new';
-						break;
-					case 'Modified':
-						$booking_type = 'modified';
-						break;
-					case 'Cancelled':
-						$booking_type = 'cancelled';
-						break;
-				}
+                    if((string)$room->BookingItemStatus=='Cancelled') {
+                        $booking_type = 'cancelled';
+                    } else {
+                        switch ((string)$reservation->NotificationType) {
+                            case 'New':
+                                $booking_type = 'new';
+                                break;
+                            case 'Modified':
+                                $booking_type = 'modified';
+                                break;
+                            case 'Cancelled':
+                                $booking_type = 'cancelled';
+                                break;
+                        }
+                    }
 
-				if ($booking_type == "cancelled")
-				{
-					$booking_array[] = array(
-						'ota_booking_id' => $hotellink_booking_id,
-						'booking_type' => $booking_type,
-						'company_id' => $company_id,
-						"source" => SOURCE_HOTELLINK,
-						"minical_room_type_id" => $minical_room_type_id
-					);
-				}
-				else
-				{
-				    $hotellink_rate_plan_id = $room->RatePlanId;
-					$minical_rate_plan_id = $this->Hotellink_model->get_minical_rate_plan_id($hotellink_rate_plan_id, $hotellink_room_type_id, $hotellink_x_company_id);
-					$check_in_date = (string)$reservation->CheckIn;
-					$check_out_date = (string)$reservation->CheckOut;
-					$adult_count = (int)$room->Adults + (int)$room->ExtraAdults;
-					$child_count = (int)$room->Children + (int)$room->ExtraChildren;
-					$currency = $reservation->CurrencyISO;
+                    if ($booking_type == "cancelled")
+                    {
+                        $booking_array[] = array(
+                            'ota_booking_id' => sprintf('%s-%s', $hotellink_booking_id, $room_index),
+                            'booking_type' => $booking_type,
+                            'company_id' => $company_id,
+                            "source" => SOURCE_HOTELLINK,
+                            "minical_room_type_id" => $minical_room_type_id
+                        );
+                        $room_index++;
+                    }
+                    else
+                    {
+                        $hotellink_rate_plan_id = $room->RatePlanId;
+                        $minical_rate_plan_id = $this->Hotellink_model->get_minical_rate_plan_id($hotellink_rate_plan_id, $hotellink_room_type_id, $hotellink_x_company_id);
+                        $check_in_date = (string)$reservation->CheckIn;
+                        $check_out_date = (string)$reservation->CheckOut;
+                        $adult_count = (int)$room->Adults + (int)$room->ExtraAdults;
+                        $child_count = (int)$room->Children + (int)$room->ExtraChildren;
+                        $currency = $reservation->CurrencyISO;
 
-					$primary_guest = $reservation->Guests;
-					$per_day_rates = $room->RoomRate->RatePerNights;
+                        $primary_guest = $reservation->Guests;
+                        $per_day_rates = $room->RoomRate->RatePerNights;
 
-					$rate_array = array();
-					foreach($per_day_rates as $item)
-					{
-					    $daily_rate = floatval($item->Rate);
-						$base_rate = number_format($daily_rate, 2, ".", "");
-						
-						$date = (string)$item->Date;
-						
-						$rate_array[] = array(
-							'date' => $date,
-							'base_rate' => $base_rate
-						);
-					}
+                        $rate_array = array();
+                        foreach($per_day_rates as $item)
+                        {
+                            $daily_rate = floatval($item->Rate);
+                            $base_rate = number_format($daily_rate, 2, ".", "");
 
-					$guest_name = $primary_guest->FirstName;
-					$guest_name .= $primary_guest->LastName ? ' '.$primary_guest->LastName : '';
+                            $date = (string)$item->Date;
 
-					$booking_data = array(
-						'ota_booking_id' => $hotellink_booking_id,
-						'booking_type' => $booking_type,
-						'company_id' => $company_id,
-						'minical_room_type_id' => $minical_room_type_id,
-						"source" => SOURCE_HOTELLINK,
-                        "sub_source" => $hotellink_booking_source,
-						"check_in_date" => $check_in_date,
-						"check_out_date" => $check_out_date,
-						"adult_count" => $adult_count,
-						"children_count" => $child_count,
-						"booking_notes" => "created from OTA (Booking ID: ".$hotellink_booking_id.")",
-						"rate_plan" => array(
-							"rate_plan_name" => "ota #".$hotellink_booking_id,
-							"number_of_adults_included_for_base_rate" => $adult_count,
-							"rates" => get_array_with_range_of_dates($rate_array, SOURCE_HOTELLINK),
-							"currency" => array ("currency_code" => (string)$currency),
-							"minical_rate_plan_id" => $minical_rate_plan_id
-						),
-						"booking_customer" => array(
-							'company_id' => $company_id,
-							'customer_name' => $guest_name,
-							'phone' => $primary_guest->Phone,
-							'email' => (string)$primary_guest->Email,
-							'address' => $primary_guest->Address ? (string) $primary_guest->Address : '',
-							'city' => $primary_guest->City ? (string) $primary_guest->City : '',
-							'country' => $primary_guest->Country ? (string) $primary_guest->Country : '',
-							'postal_code' => $primary_guest->PostalCode ? (string) $primary_guest->PostalCode : ''
-						)
-					);
+                            $rate_array[] = array(
+                                'date' => $date,
+                                'base_rate' => $base_rate
+                            );
+                        }
 
-					$booking_array[] = $booking_data;
-				}
+                        $guest_name = $primary_guest->FirstName;
+                        $guest_name .= $primary_guest->LastName ? ' '.$primary_guest->LastName : '';
+
+                        $booking_data = array(
+                            'ota_booking_id' => sprintf('%s-%s', $hotellink_booking_id, $room_index),
+                            'booking_type' => $booking_type,
+                            'company_id' => $company_id,
+                            'minical_room_type_id' => $minical_room_type_id,
+                            "source" => SOURCE_HOTELLINK,
+                            "sub_source" => $hotellink_booking_source,
+                            "check_in_date" => $check_in_date,
+                            "check_out_date" => $check_out_date,
+                            "adult_count" => $adult_count,
+                            "children_count" => $child_count,
+                            "booking_notes" => "created from OTA (Booking ID: ".$hotellink_booking_id.")",
+                            "rate_plan" => array(
+                                "rate_plan_name" => "ota #".$hotellink_booking_id,
+                                "number_of_adults_included_for_base_rate" => $adult_count,
+                                "rates" => get_array_with_range_of_dates($rate_array, SOURCE_HOTELLINK),
+                                "currency" => array ("currency_code" => (string)$currency),
+                                "minical_rate_plan_id" => $minical_rate_plan_id
+                            ),
+                            "booking_customer" => array(
+                                'company_id' => $company_id,
+                                'customer_name' => $guest_name,
+                                'phone' => $primary_guest->Phone,
+                                'email' => (string)$primary_guest->Email,
+                                'address' => $primary_guest->Address ? (string) $primary_guest->Address : '',
+                                'city' => $primary_guest->City ? (string) $primary_guest->City : '',
+                                'country' => $primary_guest->Country ? (string) $primary_guest->Country : '',
+                                'postal_code' => $primary_guest->PostalCode ? (string) $primary_guest->PostalCode : ''
+                            )
+                        );
+
+                        $booking_array[] = $booking_data;
+                        $room_index++;
+                    }
+                }
 	        }
 	    }
 
@@ -251,7 +260,7 @@ class Hotellink_bookings extends MY_Controller
 	            		{
 	            			$booking_arr[] = $booking;
 	            		} else { //If existed in db
-	            			echo "Booking already exists ID - ".$booking['ota_booking_id']."<br/>";
+	            			$message .= "Booking already exists ID - ".$booking['ota_booking_id']."<br/>";
 	                    	unset($booking_array[$index]); 
 	                    	continue;
 	            		}
@@ -343,11 +352,13 @@ class Hotellink_bookings extends MY_Controller
 
                     $this->OTA_model->insert_booking($ota_booking);
 
-                    echo "Booking cancelled successfully ID - ".$booking['ota_booking_id']."<br/>";
+                    $message .= "Booking cancelled successfully ID - ".$booking['ota_booking_id']."<br/>";
                 }
 
-                if(!in_array($booking['ota_booking_id'], $confirmedIds)) {
-                    $confirmedIds[] = $booking['ota_booking_id'];
+                list($ota_booking_id, ) = explode('-', $booking['ota_booking_id']);
+
+                if(!in_array($ota_booking_id, $confirmedIds)) {
+                    $confirmedIds[] = $ota_booking_id;
                 }
             }
 
@@ -452,13 +463,16 @@ class Hotellink_bookings extends MY_Controller
 				//do_action('update_availability', $update_availability_data);
                 do_action('hotellink_update_availability', $update_availability_data);
 
-            	echo $msg." ID - ".$response['ota_booking_id']."<br/>";
+                $message .= $msg." ID - ".$response['ota_booking_id']."<br/>";
 
-                if(!in_array($booking['ota_booking_id'], $confirmedIds)) {
-                    $confirmedIds[] = $booking['ota_booking_id'];
+            	list($ota_booking_id, ) = explode('-', $response['ota_booking_id']);
+                if(!in_array($ota_booking_id, $confirmedIds)) {
+                    $confirmedIds[] = $ota_booking_id;
                 }
             }
         }
+	    echo $message;
+
 	    if(!empty($confirmedIds)) {
             $this->send_booking_confirmed($confirmedIds, $property_id, $token);
         }
