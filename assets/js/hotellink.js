@@ -66,6 +66,7 @@ $(document).ready(function(){
 
     $('body').on('click','.fetch-room',function(){
         var property_id = $('#property-id').val();
+        var property_key = $('#property-key').val();
 
 
         if(property_id == ''){
@@ -77,7 +78,7 @@ $(document).ready(function(){
                 type    : "POST",
                 dataType: 'html',
                 url     : getBaseURL() + 'hotellink_get_room_types',
-                data: {property_id : property_id, hotellink_id : pathArray[pathArray.length-1]},
+                data: {property_id : property_id, property_key: property_key, hotellink_id : pathArray[pathArray.length-1]},
                 success: function( data ) {
                     $('.save_hotellink_mapping').html(data);
                 }
@@ -99,6 +100,7 @@ $(document).ready(function(){
         var mappingData = [];
         var mappingDataRP = [];
         var propertyId = $('#property-id').val();
+        var propertyKey = $('#property-key').val();
 
         $('.hotellink_room_types').each(function(){
             var chRoomTypeId = $(this).data('hotellink_room_id');
@@ -126,6 +128,7 @@ $(document).ready(function(){
             data   : {
                 hotellink_id : pathArray[pathArray.length-1],
                 property_id : propertyId,
+                property_key : propertyKey,
                 mapping_data : mappingData,
                 mapping_data_rp : mappingDataRP
             },

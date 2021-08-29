@@ -76,7 +76,7 @@ class HotellinkIntegration
         return '';
     }
 
-    public function get_rate_plans($property_id, $token, $channel_key='7fd41009bbaa5c0464720b07f531d721'){
+    public function get_rate_plans($property_id, $property_key, $token){
 
         $api_url = $this->hotellink_url;
         $method = '/external/pms/getRatePlans';
@@ -85,7 +85,7 @@ class HotellinkIntegration
         $data = array(
             "Credential" => array(
                 "HotelId" => $property_id,
-                "HotelAuthenticationChannelKey" => $channel_key
+                "HotelAuthenticationChannelKey" => $property_key
             ),
             "Lang" => "en"
         );

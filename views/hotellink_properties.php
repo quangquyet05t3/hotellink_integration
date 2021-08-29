@@ -8,18 +8,30 @@
 
         <?php if (isset($hotellink_room_types_rate_plans) && count($hotellink_room_types_rate_plans) > 0): ?>
 
-            <div class="col-md-6">
+            <div class="col-md-9">
                 <div class="position-relative form-group">
                     <label for="hotellink-id" class=""><?php echo l('Hotel Link Property Id: '); ?></label>
                     <?php echo isset($hotellink_room_types[0]['ota_property_id']) ? $hotellink_room_types[0]['ota_property_id'] : ''; ?>
                 </div>
             </div>
+            <div class="col-md-9">
+                <div class="position-relative form-group">
+                    <label for="hotellink-key" class=""><?php echo l('Hotel Link Property Key: '); ?></label>
+                    <?php echo isset($hotellink_room_types[0]['ota_property_key']) ? $hotellink_room_types[0]['ota_property_key'] : ''; ?>
+                </div>
+            </div>
 
         <?php else: ?>
-            <div class="col-md-6">
+            <div class="col-md-9">
                 <div class="position-relative form-group">
                     <label for="hotellink-id" class=""><?php echo l('Hotel Link Property Id'); ?></label>
                     <input type="text" name="property" id="property-id" class="form-control" value="<?php echo isset($hotellink_room_types[0]['ota_property_id']) ? $hotellink_room_types[0]['ota_property_id'] : ''; ?>">
+                </div>
+                <div class="position-relative form-group">
+                    <label for="hotellink-key" class=""><?php echo l('Hotel Link Property Key'); ?></label>
+                    <input type="text" name="key" id="property-key" class="form-control" value="<?php echo isset($hotellink_room_types[0]['ota_property_key']) ? $hotellink_room_types[0]['ota_property_key'] : ''; ?>">
+                </div>
+                <div class="position-relative form-group">
                     <button type="button" class="btn btn-success fetch-room" ><?=l("Fetch room");?></button>
                 </div>
             </div>

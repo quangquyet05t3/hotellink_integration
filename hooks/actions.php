@@ -25,6 +25,7 @@ function hotellink_update_availability_fn ($data) {
 
     $hotellink_x_company = $CI->Hotellink_model->get_hotellink_x_company_by_channel($CI->ota_key, $CI->company_id);
     $property_id = $hotellink_x_company['ota_property_id'] ;
+    $property_key = $hotellink_x_company['ota_property_key'] ;
     $ota_x_company_id = $hotellink_x_company['ota_x_company_id'] ;
 
     if($room_type_id)
@@ -108,46 +109,10 @@ function hotellink_update_availability_fn ($data) {
 
         $availability_data['Credential'] = [
             "HotelId" => $property_id,
-            "HotelAuthenticationChannelKey" => '7fd41009bbaa5c0464720b07f531d721'
+            "HotelAuthenticationChannelKey" => $property_key
         ];
         $availability_data['Lang'] = 'en';
         $avail_array[] = $availability_data;
-
-
-        /*$room_id = 'DLXQ';
-        $avail = 8;
-        $from = '2021-08-10';
-        $to = '2021-08-20';
-        $property_id = '5994c2db-cd76-401c-ba2e-e178ae118a8d';
-        $release = 1;
-
-        $avail_array = $availability_data = $inventories = [];
-        //For $inventories
-        $inventory = [];
-        $inventory['RoomId'] = $room_id;
-
-        //Start $availabilities
-        $availabilities = [];
-        $availability = [];
-        $availability['DateRange'] = [
-            'From' => $from,
-            'To' => $to
-        ];
-        $availability['Quantity'] = $avail;
-        $availability['ReleasePeriod'] = $release;
-        $availability['Action'] = 'Set';
-        $availabilities[] = $availability;
-        //End $availabilities
-        $inventory['Availabilities'] = $availabilities;
-        $inventories[] = $inventory;
-        $availability_data['Inventories'] = $inventories;
-
-        $availability_data['Credential'] = [
-            "HotelId" => $property_id,
-            "HotelAuthenticationChannelKey" => '7fd41009bbaa5c0464720b07f531d721'
-        ];
-        $availability_data['Lang'] = 'en';
-        $avail_array[] = $availability_data;*/
 
         $get_token_data = $CI->Hotellink_model->get_token(null, $CI->company_id, $CI->ota_key);
 

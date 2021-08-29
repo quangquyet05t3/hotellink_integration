@@ -93,7 +93,7 @@ class Hotellink_bookings extends MY_Controller
     	}
 
     	$token_data = json_decode($get_token_data['meta_data']);
-        $property_id = $token = '';
+        $property_id = $property_key = $token = '';
         $confirmedIds = [];
 
     	if($token_data && isset($token_data->data) && $token_data->data && isset($token_data->data->access_token) && $token_data->data->access_token){
@@ -102,12 +102,13 @@ class Hotellink_bookings extends MY_Controller
     		$ota_x_company = $this->Hotellink_model->get_hotellink_x_company_by_channel($this->ota_key, $this->company_id);
     		if(isset($ota_x_company['ota_property_id']) &&$ota_x_company['ota_property_id']) {
                 $property_id = $ota_x_company['ota_property_id'];
+                $property_key = $ota_x_company['ota_property_key'];
                 $data = array(
                     "StartDate" => date('Y-m-d', time()-86400),
                     "EndDate" => date('Y-m-d', time()+86400),
                     "Credential" => array(
                         "HotelId" => $property_id,
-                        "HotelAuthenticationChannelKey" => '7fd41009bbaa5c0464720b07f531d721'
+                        "HotelAuthenticationChannelKey" => $property_key
                     ),
                     "Lang" => "en"
                 );
@@ -474,17 +475,17 @@ class Hotellink_bookings extends MY_Controller
 	    echo $message;
 
 	    if(!empty($confirmedIds)) {
-            $this->send_booking_confirmed($confirmedIds, $property_id, $token);
+            $this->send_booking_confirmed($confirmedIds, $property_id, $property_key, $token);
         }
 	}
 
 
-	function send_booking_confirmed($confirmedIds, $property_id, $token) {
+	function send_booking_confirmed($confirmedIds, $property_id, $property_key, $token) {
         $data = array(
             "Bookings" => $confirmedIds,
             "Credential" => array(
                 "HotelId" => $property_id,
-                "HotelAuthenticationChannelKey" => '7fd41009bbaa5c0464720b07f531d721'
+                "HotelAuthenticationChannelKey" => $property_key
             ),
             "Lang" => "en"
         );

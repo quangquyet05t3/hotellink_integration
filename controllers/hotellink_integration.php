@@ -133,6 +133,7 @@ class Hotellink_integration extends MY_Controller
 
         if($data['hotellink_room_types'] && $data['hotellink_rate_plans']){
             $property_id = $data['hotellink_room_types'][0]['ota_property_id'];
+            $property_key = $data['hotellink_room_types'][0]['ota_property_key'];
 
             if($this->hotellink_refresh_token()){
                 $get_token_data = $this->Hotellink_model->get_token($hotellink_id);
@@ -143,7 +144,7 @@ class Hotellink_integration extends MY_Controller
             $token = $token_data->data->access_token;
             $is_mapping = true;
 
-            $rate_plans_data = $this->hotellinkintegration->get_rate_plans($property_id, $token);
+            $rate_plans_data = $this->hotellinkintegration->get_rate_plans($property_id, $property_key, $token);
             $hotellink_rate_plans = json_decode($rate_plans_data, true);
 
             /*if (isset($hotellink_rate_plans['data']) && count($hotellink_rate_plans['data']) > 0) {
@@ -249,6 +250,7 @@ class Hotellink_integration extends MY_Controller
     function get_room_types()
     {
         $property_id = $this->input->post('property_id');
+        $property_key = $this->input->post('property_key');
         $hotellink_id = $this->input->post('hotellink_id');
 
         $get_token_data = $this->Hotellink_model->get_token($hotellink_id);
@@ -263,7 +265,7 @@ class Hotellink_integration extends MY_Controller
 
             $token = $token_data->data->access_token;
 
-            $rate_plans_data = $this->hotellinkintegration->get_rate_plans($property_id, $token);
+            $rate_plans_data = $this->hotellinkintegration->get_rate_plans($property_id, $property_key, $token);
             $hotellink_rate_plans = json_decode($rate_plans_data, true);
 
             /*if (isset($hotellink_rate_plans['data']) && count($hotellink_rate_plans['data']) > 0) {
@@ -312,6 +314,7 @@ class Hotellink_integration extends MY_Controller
 
         $hotellink_id = $this->input->post('hotellink_id');
         $property_id = $this->input->post('property_id');
+        $property_key = $this->input->post('property_key');
         $mapping_data = $this->input->post('mapping_data');
         $mapping_data_rp = $this->input->post('mapping_data_rp');
 
@@ -324,6 +327,7 @@ class Hotellink_integration extends MY_Controller
                 'company_id' => $this->company_id,
                 'ota_manager_id' => $hotellink_id,
                 'ota_property_id' => $property_id,
+                'ota_property_key' => $property_key,
                 'is_active' => 1,
             );
 
@@ -366,7 +370,7 @@ class Hotellink_integration extends MY_Controller
 
     function update_full_refresh(){
         // loop 4 times to cover 360 days
-        for ($i = 0; $i < 1; $i++)
+        for ($i = 0; $i < 4; $i++)
         {
             $start_date = date("Y-m-d", time()+86400);
             //$start_date = date("Y-m-d");
@@ -424,6 +428,7 @@ class Hotellink_integration extends MY_Controller
 
         $channex_x_company = $this->Hotellink_model->get_hotellink_x_company_by_channel($this->ota_key, $this->company_id);
         $property_id = $channex_x_company['ota_property_id'] ;
+        $property_key = $channex_x_company['ota_property_key'] ;
 
         if($rate_plan_id) {
             $rate_plan_data = $this->Hotellink_model->get_hotellink_rate_plans_by_id($rate_plan_id);
@@ -456,7 +461,7 @@ class Hotellink_integration extends MY_Controller
 
                 $rate_array = [];
                 $rate_data = $this->build_hotellink_rate_data($room_id, $plan_id, $rate, $currency_code, $extra_adult_rate, $extra_child_rate, $min_night,
-                    $max_night, $cta, $ctd, $stop_sell, $from, $to, $property_id);
+                    $max_night, $cta, $ctd, $stop_sell, $from, $to, $property_id, $property_key);
                 $rate_array[] = $rate_data;
 
             }
@@ -510,7 +515,7 @@ class Hotellink_integration extends MY_Controller
                         //$currency_code = 'MYR';
 
                         $rate_data = $this->build_hotellink_rate_data($room_id, $plan_id, $rate, $currency_code, $extra_adult_rate, $extra_child_rate, $min_night,
-                            $max_night, $cta, $ctd, $stop_sell, $from, $to, $property_id);
+                            $max_night, $cta, $ctd, $stop_sell, $from, $to, $property_id, $property_key);
                         $rate_array[] = $rate_data;
                     }
                 }
@@ -532,7 +537,8 @@ class Hotellink_integration extends MY_Controller
         foreach ($rate_array as $data) {
             $response = $this->hotellinkintegration->update_inventories($data, $token);
             $response = json_decode($response, true);
-            //$this->save_logs($property_id, 1);
+            $this->save_logs($property_id, 1, 1, json_encode($data), $response);;
+
             echo 'rates resp = ';prx($response, 1);
         }
 
@@ -541,7 +547,7 @@ class Hotellink_integration extends MY_Controller
     }
 
     function build_hotellink_rate_data($room_id, $plan_id, $rate, $currency_code, $extra_adult_rate, $extra_child_rate, $min_night,
-                                       $max_night, $cta, $ctd, $stop_sell, $from, $to, $property_id, $channel_key='7fd41009bbaa5c0464720b07f531d721') {
+                                       $max_night, $cta, $ctd, $stop_sell, $from, $to, $property_id, $property_key) {
         $rate_data = [];
         $inventories = [];
         //For $inventories
@@ -609,57 +615,21 @@ class Hotellink_integration extends MY_Controller
         $rate_data['Inventories'] = $inventories;
         $rate_data['Credential'] = [
             "HotelId" => $property_id,
-            "HotelAuthenticationChannelKey" => $channel_key
+            "HotelAuthenticationChannelKey" => $property_key
         ];
         $rate_data['Lang'] = 'en';
+
+        return $rate_data;
     }
 
-    function rate_example_request() {
-        $rate_array = [];
-        $rate_data = [];
-        $inventories = [];
-        //For $inventories
-        $inventory = [];
-        $inventory['RoomId'] = 'DLXQ'; //'DLXQ';
-
-        $rate_packages = [];
-        //For $rate_packages
-        $rate_package = [];
-        $rate_package['RatePlanId'] = 'BAR-DLXQ';//'BAR-DLXQ';
-        $rate_package['Rate'] = [
-            'Amount' => [
-                'Type' => 'FIXED_AMOUNT',
-                'Value' => '150',
-                'Currency' => 'USD'
-            ],
-            'Action' => 'Set'
-        ];
-        $rate_package['ExtraAdultRates'] = [
-            1 => 50,
-            2 => 30,
-            3 => 20
-        ];
-
-        $rate_package['DateRange'] = [
-            'From' => '2021-08-20',
-            'To' => '2021-08-30'
-        ];
-        $rate_packages[] = $rate_package;
-        //End For $rate_packages
-
-        $inventory['RatePackages'] = $rate_packages;
-        //End For $inventories
-        $inventories[] = $inventory;
-
-        $rate_data['Inventories'] = $inventories;
-        $rate_data['Credential'] = [
-            "HotelId" => '5994c2db-cd76-401c-ba2e-e178ae118a8d',
-            "HotelAuthenticationChannelKey" => '7fd41009bbaa5c0464720b07f531d721'
-        ];
-        $rate_data['Lang'] = 'en';
-
-
-        $rate_array[] = $rate_data;
-        return $rate_array;
+    function save_logs($ota_property_id = null, $request_type = null, $response_type = null, $xml_in = null, $xml_out = null) {
+        $data = array(
+            'ota_property_id' => $ota_property_id ? $ota_property_id : null,
+            'request_type' => ($request_type || $request_type == 0) ? $request_type : null,
+            'response_type' => ($response_type || $response_type == 0) ? $response_type : null,
+            'xml_in' => $xml_in ? $xml_in : null,
+            'xml_out' => $xml_out ? $xml_out : null,
+        );
+        $this->Hotellink_model->save_logs($data);
     }
 }
