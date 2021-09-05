@@ -10,22 +10,13 @@
         <div class="panel-body form-horizontal ">
             <div id="configure-hotellink" class="hidden">
                 <div class="form-group rate-group text-center">
-                    <label for="email" class="col-sm-3 control-label">
-                        <span alt="email" title="email"><?=l("Channel Manager Username");?></span>
+                    <label for="channel_key" class="col-sm-3 control-label">
+                        <span alt="channel_key" title="channel_key"><?=l("Hotel Authentication Channel Key");?></span>
                     </label>
-                    <div class="col-sm-9">
-                        <input type="text" name="email" class="form-control" value="<?php echo isset($hotellink_data['email']) ? $hotellink_data['email'] : ''; ?>">
+                    <div class="col-sm-6">
+                        <input type="text" name="channel_key" class="form-control" value="<?php echo isset($hotellink_data['email']) ? $hotellink_data['email'] : ''; ?>">
                     </div>
                 </div>
-                <div class="form-group rate-group text-center">
-                    <label for="password" class="col-sm-3 control-label">
-                        <span alt="password" title="password"><?=l("Channel Manager Password");?></span>
-                    </label>
-                    <div class="col-sm-9">
-                        <input type="password" name="password" class="form-control" value="<?php echo isset($hotellink_data['password']) ? $hotellink_data['password'] : ''; ?>">
-                    </div>
-                </div>
-
                 <div class="text-center">
                     <button type="button" class="btn btn-success login-hotellink" ><?=l("Sign in");?></button>
                 </div>
@@ -42,22 +33,13 @@
         <div class="panel-body form-horizontal ">
             <div id="configure-hotellink" class="">
                 <div class="form-group rate-group text-center">
-                    <label for="email" class="col-sm-3 control-label">
-                        <span alt="email" title="email"><?=l("Channel Manager Username");?></span>
+                    <label for="channel_key" class="col-sm-3 control-label">
+                        <span alt="channel_key" title="channel_key"><?=l("Hotel Authentication Channel Key");?></span>
                     </label>
-                    <div class="col-sm-9">
-                        <input type="text" name="email" class="form-control" value="<?php echo isset($hotellink_data['email']) ? $hotellink_data['email'] : ''; ?>">
+                    <div class="col-sm-6">
+                        <input type="text" name="channel_key" class="form-control" value="<?php echo isset($hotellink_data['email']) ? $hotellink_data['email'] : ''; ?>">
                     </div>
                 </div>
-                <div class="form-group rate-group text-center">
-                    <label for="password" class="col-sm-3 control-label">
-                        <span alt="password" title="password"><?=l("Channel Manager Password");?></span>
-                    </label>
-                    <div class="col-sm-9">
-                        <input type="password" name="password" class="form-control" value="<?php echo isset($hotellink_data['password']) ? $hotellink_data['password'] : ''; ?>">
-                    </div>
-                </div>
-
                 <div class="text-center">
                     <button type="button" class="btn btn-success login-hotellink" ><?=l("Sign in");?></button>
                 </div>

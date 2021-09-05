@@ -30,6 +30,7 @@ class Hotellink_integration extends MY_Controller
 
     function hotellink()
     {
+
         $data['company_id'] = $this->company_id;
 
         $data['main_content'] = '../extensions/'.$this->module_name.'/views/hotellink_authentication';
@@ -40,25 +41,24 @@ class Hotellink_integration extends MY_Controller
     }
 
     function signin_hotellink(){
-        $email = $this->input->post('email');
-        $password = $this->input->post('password');
-
-        $authentication = $this->hotellinkintegration->signin_hotellink($email, $password);
-
+        $channel_key = $this->input->post('channel_key');
+        $username = getenv("HOTELLINK_USERNAME");
+        $password = getenv("HOTELLINK_PASSWORD");
+        $authentication = $this->hotellinkintegration->signin_hotellink($username, $password);
         $response = json_decode($authentication, true);
 
         $is_valid_creds = false;
         if(isset($response['result']) && $response['result'] && isset($response['data']) && $response['data']){
 
             $data = array(
-                'email' => $email,
-                'password' => $password,
+                'email' => $channel_key,
+                'password' => $channel_key,
                 'company_id' => $this->company_id,
                 'meta_data' => $authentication,
                 'created_date' => date('Y-m-d H:i:s'),
             );
 
-            $hotellink_data = $this->Hotellink_model->get_data_by_email($email, $this->company_id);
+            $hotellink_data = $this->Hotellink_model->get_data_by_email($channel_key, $this->company_id);
 
             if($hotellink_data){
                 $this->Hotellink_model->update_token($data);
@@ -103,7 +103,7 @@ class Hotellink_integration extends MY_Controller
         $get_token_data = $this->Hotellink_model->get_token($hotellink_id);
 
         if($hotellink_prop_data){
-
+            //$data['properties'] = json_decode($hotellink_prop_data['channex_property_data'], true);
         } else {
 
             if($get_token_data){
@@ -133,7 +133,7 @@ class Hotellink_integration extends MY_Controller
 
         if($data['hotellink_room_types'] && $data['hotellink_rate_plans']){
             $property_id = $data['hotellink_room_types'][0]['ota_property_id'];
-            $property_key = $data['hotellink_room_types'][0]['ota_property_key'];
+            $channel_key = $get_token_data['email'];
 
             if($this->hotellink_refresh_token()){
                 $get_token_data = $this->Hotellink_model->get_token($hotellink_id);
@@ -144,7 +144,7 @@ class Hotellink_integration extends MY_Controller
             $token = $token_data->data->access_token;
             $is_mapping = true;
 
-            $rate_plans_data = $this->hotellinkintegration->get_rate_plans($property_id, $property_key, $token);
+            $rate_plans_data = $this->hotellinkintegration->get_rate_plans($property_id, $channel_key, $token);
             $hotellink_rate_plans = json_decode($rate_plans_data, true);
 
             /*if (isset($hotellink_rate_plans['data']) && count($hotellink_rate_plans['data']) > 0) {
@@ -250,7 +250,6 @@ class Hotellink_integration extends MY_Controller
     function get_room_types()
     {
         $property_id = $this->input->post('property_id');
-        $property_key = $this->input->post('property_key');
         $hotellink_id = $this->input->post('hotellink_id');
 
         $get_token_data = $this->Hotellink_model->get_token($hotellink_id);
@@ -262,10 +261,10 @@ class Hotellink_integration extends MY_Controller
             }
 
             $token_data = json_decode($get_token_data['meta_data']);
-
             $token = $token_data->data->access_token;
+            $channel_key = $get_token_data['email'];
 
-            $rate_plans_data = $this->hotellinkintegration->get_rate_plans($property_id, $property_key, $token);
+            $rate_plans_data = $this->hotellinkintegration->get_rate_plans($property_id, $channel_key, $token);
             $hotellink_rate_plans = json_decode($rate_plans_data, true);
 
             /*if (isset($hotellink_rate_plans['data']) && count($hotellink_rate_plans['data']) > 0) {
@@ -314,7 +313,6 @@ class Hotellink_integration extends MY_Controller
 
         $hotellink_id = $this->input->post('hotellink_id');
         $property_id = $this->input->post('property_id');
-        $property_key = $this->input->post('property_key');
         $mapping_data = $this->input->post('mapping_data');
         $mapping_data_rp = $this->input->post('mapping_data_rp');
 
@@ -327,7 +325,6 @@ class Hotellink_integration extends MY_Controller
                 'company_id' => $this->company_id,
                 'ota_manager_id' => $hotellink_id,
                 'ota_property_id' => $property_id,
-                'ota_property_key' => $property_key,
                 'is_active' => 1,
             );
 
