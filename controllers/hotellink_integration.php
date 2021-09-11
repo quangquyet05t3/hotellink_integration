@@ -423,9 +423,16 @@ class Hotellink_integration extends MY_Controller
             'can_be_sold_online' => $this->input->post('can_be_sold_online')
         );
 
+        $get_token_data = $this->Hotellink_model->get_token(null, $this->company_id, $this->ota_key);
+        if($this->hotellink_refresh_token()){
+            $get_token_data = $this->Hotellink_model->get_token(null, $this->company_id, $this->ota_key);
+        }
+        $token_data = json_decode($get_token_data['meta_data']);
+        $token = $token_data->data->access_token;
+
         $channex_x_company = $this->Hotellink_model->get_hotellink_x_company_by_channel($this->ota_key, $this->company_id);
         $property_id = $channex_x_company['ota_property_id'] ;
-        $property_key = $channex_x_company['ota_property_key'] ;
+        $property_key = $get_token_data['email'] ;
 
         if($rate_plan_id) {
             $rate_plan_data = $this->Hotellink_model->get_hotellink_rate_plans_by_id($rate_plan_id);
@@ -518,24 +525,13 @@ class Hotellink_integration extends MY_Controller
                 }
             }
         }
-
-        $get_token_data = $this->Hotellink_model->get_token(null, $this->company_id, $this->ota_key);
-
-        if($this->hotellink_refresh_token()){
-            $get_token_data = $this->Hotellink_model->get_token(null, $this->company_id, $this->ota_key);
-        }
-
-        $token_data = json_decode($get_token_data['meta_data']);
-        $token = $token_data->data->access_token;
-
         //$rate_array = $this->rate_example_request();
 
         prx($rate_array, 1);
         foreach ($rate_array as $data) {
             $response = $this->hotellinkintegration->update_inventories($data, $token);
+            $this->save_logs($property_id, 1, 1, json_encode($data), $response);
             $response = json_decode($response, true);
-            $this->save_logs($property_id, 1, 1, json_encode($data), $response);;
-
             echo 'rates resp = ';prx($response, 1);
         }
 

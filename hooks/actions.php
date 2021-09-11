@@ -23,9 +23,16 @@ function hotellink_update_availability_fn ($data) {
     if($update_from == 'extension')
         $CI->company_id = $data['company_id'];
 
+    $get_token_data = $CI->Hotellink_model->get_token(null, $CI->company_id, $CI->ota_key);
+    if($CI->hotellink_refresh_token()){
+        $get_token_data = $CI->Hotellink_model->get_token(null, $CI->company_id, $CI->ota_key);
+    }
+    $token_data = json_decode($get_token_data['meta_data']);
+    $token = $token_data->data->access_token;
+
     $hotellink_x_company = $CI->Hotellink_model->get_hotellink_x_company_by_channel($CI->ota_key, $CI->company_id);
     $property_id = $hotellink_x_company['ota_property_id'] ;
-    $property_key = $hotellink_x_company['ota_property_key'] ;
+    $property_key = $get_token_data['email'] ;
     $ota_x_company_id = $hotellink_x_company['ota_x_company_id'] ;
 
     if($room_type_id)
@@ -113,15 +120,6 @@ function hotellink_update_availability_fn ($data) {
         ];
         $availability_data['Lang'] = 'en';
         $avail_array[] = $availability_data;
-
-        $get_token_data = $CI->Hotellink_model->get_token(null, $CI->company_id, $CI->ota_key);
-
-        if($CI->hotellink_refresh_token()){
-            $get_token_data = $CI->Hotellink_model->get_token(null, $CI->company_id, $CI->ota_key);
-        }
-
-        $token_data = json_decode($get_token_data['meta_data']);
-        $token = $token_data->data->access_token;
 
         prx($avail_array, 1);
         foreach ($avail_array as $data) {
