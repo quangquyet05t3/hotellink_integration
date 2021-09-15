@@ -430,8 +430,8 @@ class Hotellink_integration extends MY_Controller
         $token_data = json_decode($get_token_data['meta_data']);
         $token = $token_data->data->access_token;
 
-        $channex_x_company = $this->Hotellink_model->get_hotellink_x_company_by_channel($this->ota_key, $this->company_id);
-        $property_id = $channex_x_company['ota_property_id'] ;
+        $ota_x_company = $this->Hotellink_model->get_hotellink_x_company_by_channel($this->ota_key, $this->company_id);
+        $property_id = $ota_x_company['ota_property_id'] ;
         $property_key = $get_token_data['email'] ;
 
         if($rate_plan_id) {

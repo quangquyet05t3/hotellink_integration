@@ -1133,17 +1133,17 @@ class Hotellink_bookings extends MY_Controller
                 }  
                 if($is_send_emails)
                 {
-                    $this->channexemailtemplate->send_booking_alert_email($booking_id, $booking_type); // to owners
-                    $this->channexemailtemplate->send_booking_confirmation_email($booking_id, $booking_type); // to customer
+                    $this->hotellinkemailtemplate->send_booking_alert_email($booking_id, $booking_type); // to owners
+                    $this->hotellinkemailtemplate->send_booking_confirmation_email($booking_id, $booking_type); // to customer
                 }
             }
             else
             {
-                $this->channexemailtemplate->send_booking_alert_email($booking_id, $booking_type); // to owners
+                $this->hotellinkemailtemplate->send_booking_alert_email($booking_id, $booking_type); // to owners
                 
                 if(isset($company_detail) && !$company_detail['email_confirmation_for_ota_reservations'])
                 {
-                    $this->channexemailtemplate->send_booking_confirmation_email($booking_id, $booking_type); // to owners
+                    $this->hotellinkemailtemplate->send_booking_confirmation_email($booking_id, $booking_type); // to owners
                 }
             }
         }
