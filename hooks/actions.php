@@ -124,7 +124,7 @@ function hotellink_update_availability_fn ($data) {
         prx($avail_array, 1);
         foreach ($avail_array as $data) {
             $response = $CI->hotellinkintegration->update_inventories($data, $token);
-            save_logs($property_id, 0, 0, json_encode($avail_array), $response);
+            hotellink_save_logs($property_id, 0, 0, json_encode($avail_array), $response);
             $response = json_decode($response, true);
             echo 'availability resp = ';prx($response, 1);
         }

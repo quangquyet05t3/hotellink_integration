@@ -6,6 +6,8 @@ class Hotellink_bookings extends MY_Controller
     public $ota_name;
     public $hotellink_url;
 
+
+
 	function __construct()
 	{
 
@@ -886,7 +888,7 @@ class Hotellink_bookings extends MY_Controller
             if($booking['source'] == SOURCE_HOTELLINK){
                 
                 $source = isset($booking['sub_source']) && $booking['sub_source'] ? $booking['sub_source'] : "";
-                $parent_source = "Channex";
+                $parent_source = "Hotellink";
                 if($source) {
                     $is_new_source = true;
                     if(strcmp($parent_source, trim($source)) == 0){
