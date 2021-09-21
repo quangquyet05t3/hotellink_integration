@@ -14,6 +14,7 @@ class Hotellink_integration extends MY_Controller
         $this->load->model('../extensions/'.$this->module_name.'/models/Rate_plan_model');
         $this->load->model('../extensions/'.$this->module_name.'/models/Rooms_model');
         $this->load->model('../extensions/'.$this->module_name.'/models/Rates_model');
+        $this->load->model('../extensions/'.$this->module_name.'/models/Currency_model');
 
 
         $this->load->library('../extensions/'.$this->module_name.'/libraries/HotellinkIntegration');
@@ -225,7 +226,9 @@ class Hotellink_integration extends MY_Controller
 
                 if($oldDate < $cDate)
                 {
-                    $get_refresh_token_data = $this->hotellinkintegration->refresh_token($hotellink_data['email'], $hotellink_data['password']);
+                    $username = getenv("HOTELLINK_USERNAME");
+                    $password = getenv("HOTELLINK_PASSWORD");
+                    $get_refresh_token_data = $this->hotellinkintegration->refresh_token($username, $password);
                     $response = json_decode($get_refresh_token_data);
 
                     if(isset($response->data) && $response->data){
@@ -402,6 +405,8 @@ class Hotellink_integration extends MY_Controller
 
     function hotellink_update_restrictions($start_date = null, $end_date = null){
 
+        $currency = $this->Currency_model->get_default_currency($this->company_id);
+        $currency_code = isset($currency['currency_code'])? $currency['currency_code']: 'USD';
         if(!$start_date && !$end_date){
             $start_date = $this->input->post('date_start');
             $end_date = $this->input->post('date_end');
@@ -450,21 +455,29 @@ class Hotellink_integration extends MY_Controller
                     }
                 }
 
-                //$room_type_detail = $this->Hotellink_model->get_room_type_by_rate_plan_id($rate_plan_id);
-                //$room_maximum_occupancy = $room_type_detail['max_occupancy'];
-                $room_maximum_occupancy = 4;
+                $room_type_detail = $this->Hotellink_model->get_room_type_by_rate_plan_id($rate_plan_id);
+                $room_maximum_occupancy = $room_type_detail['max_occupancy'];
                 $rate = $rates['adult_1_rate'];
-                $min_night = $rates['minimum_length_of_stay'];
-                $max_night = $rates['maximum_length_of_stay'];
-                $cta = $rates['closed_to_arrival'] == 0 ? true : false;
-                $ctd = $rates['closed_to_departure'] == 0 ? true : false;
-                $stop_sell = $rates['can_be_sold_online'] == 1 ? false : true;
-                $extra_adult_rate = isset($rates['additional_adult_rate']) && $rates['additional_adult_rate'] > 0 ? $rates['additional_adult_rate']: null;
+                $min_night = $rates['minimum_length_of_stay']>0? $rates['minimum_length_of_stay']: null;
+                $max_night = $rates['maximum_length_of_stay']>0? $rates['maximum_length_of_stay']: null;
+                $cta = $rates['closed_to_arrival'] == 1 ? "1" : "0";
+                $ctd = $rates['closed_to_departure'] == 1 ? "1" : "0";
+                $stop_sell = $rates['can_be_sold_online'] == "1" ? "0": "1";
+                $extra_adult_rate = null;
                 $extra_child_rate = isset($rates['additional_child_rate']) && $rates['additional_child_rate'] > 0 ? $rates['additional_child_rate']: null;
-                $currency_code = $rates['currency_code'];
+
+                $extra_rates = [];
+                for($i = 1; $i < $room_maximum_occupancy; $i++) {
+                    if($i>=4) {
+                        $extra_adult_rate = isset($rates['additional_adult_rate']) && $rates['additional_adult_rate'] > 0 ? $rates['additional_adult_rate']: null;
+                    } else {
+                        $extra = $rates['adult_'.($i+1).'_rate'] - $rates['adult_'.$i.'_rate'];
+                        $extra_rates["$i"] = $extra>0? $extra: 0;
+                    }
+                }
 
                 $rate_array = [];
-                $rate_data = $this->build_hotellink_rate_data($room_id, $plan_id, $rate, $currency_code, $extra_adult_rate, $extra_child_rate, $min_night,
+                $rate_data = $this->build_hotellink_rate_data($room_id, $plan_id, $rate, $extra_rates, $currency_code, $extra_adult_rate, $extra_child_rate, $min_night,
                     $max_night, $cta, $ctd, $stop_sell, $from, $to, $property_id, $property_key);
                 $rate_array[] = $rate_data;
 
@@ -500,6 +513,8 @@ class Hotellink_integration extends MY_Controller
 
             if($property_id){
 
+                $room_type_detail = $this->Hotellink_model->get_room_type_by_rate_plan_id($rate_plan_id);
+                $room_maximum_occupancy = $room_type_detail['max_occupancy'];
                 $rate_array = [];
                 foreach ($minical_rates as $key => $minical_rate) {
                     foreach($minical_rate as $key1 => $minical_rate_item){
@@ -508,17 +523,26 @@ class Hotellink_integration extends MY_Controller
                         $to = $minical_rate_item['date'];
                         list($room_id, $plan_id) = explode('|', $rate_plan_mapping[$minical_rate_item['rate_plan_id']]);
                         $rate = isset($minical_rate_item["adult_1_rate"]) ? $minical_rate_item["adult_1_rate"]: 0;
-                        $min_night = $minical_rate_item['minimum_length_of_stay'];
-                        $max_night = $minical_rate_item['maximum_length_of_stay'];
-                        $cta = $minical_rate_item['closed_to_arrival'] == 0 ? true : false;
-                        $ctd = $minical_rate_item['closed_to_departure'] == 0 ? true : false;
-                        $stop_sell = $rates['can_be_sold_online'] == 1 ? false : true;
-                        $extra_adult_rate = isset($minical_rate_item['additional_adult_rate'])? $minical_rate_item['additional_adult_rate']: 0;
+                        $min_night = $minical_rate_item['minimum_length_of_stay']>0? $minical_rate_item['minimum_length_of_stay']: null;
+                        $max_night = $minical_rate_item['maximum_length_of_stay']>0? $minical_rate_item['maximum_length_of_stay']: null;
+                        $cta = $minical_rate_item['closed_to_arrival'] == 1 ? "1" : "0";
+                        $ctd = $minical_rate_item['closed_to_departure'] == 1 ? "1" : "0";
+                        $stop_sell = $rates['can_be_sold_online'] == 1 ? "0" : "1";
+                        $extra_adult_rate = null;
                         $extra_child_rate = isset($minical_rate_item['additional_child_rate'])? $minical_rate_item['additional_child_rate']: 0;
                         $currency_code = $minical_rate_item['currency_code'];
-                        //$currency_code = 'MYR';
 
-                        $rate_data = $this->build_hotellink_rate_data($room_id, $plan_id, $rate, $currency_code, $extra_adult_rate, $extra_child_rate, $min_night,
+                        $extra_rates = [];
+                        for($i = 1; $i < $room_maximum_occupancy; $i++) {
+                            if($i>=4) {
+                                $extra_adult_rate = isset($minical_rate_item['additional_adult_rate'])? $minical_rate_item['additional_adult_rate']: null;
+                            } else {
+                                $extra = $rates['adult_'.($i+1).'_rate'] - $rates['adult_'.$i.'_rate'];
+                                $extra_rates["$i"] = $extra>0? $extra: 0;
+                            }
+                        }
+
+                        $rate_data = $this->build_hotellink_rate_data($room_id, $plan_id, $rate, $extra_rates, $currency_code, $extra_adult_rate, $extra_child_rate, $min_night,
                             $max_night, $cta, $ctd, $stop_sell, $from, $to, $property_id, $property_key);
                         $rate_array[] = $rate_data;
                     }
@@ -539,7 +563,7 @@ class Hotellink_integration extends MY_Controller
         // 	echo json_encode(array('success' => true));
     }
 
-    function build_hotellink_rate_data($room_id, $plan_id, $rate, $currency_code, $extra_adult_rate, $extra_child_rate, $min_night,
+    function build_hotellink_rate_data($room_id, $plan_id, $rate, $extra_rates, $currency_code, $extra_adult_rate, $extra_child_rate, $min_night,
                                        $max_night, $cta, $ctd, $stop_sell, $from, $to, $property_id, $property_key) {
         $rate_data = [];
         $inventories = [];
@@ -562,8 +586,9 @@ class Hotellink_integration extends MY_Controller
             ];
         }
 
+        $rate_package['ExtraAdultRates'] = $extra_rates;
 
-        if($extra_adult_rate>0) {
+        if($extra_adult_rate) {
             $rate_package['ExtraAdultRate'] = [
                 'Amount' => [
                     'Type' => 'FIXED_AMOUNT',
@@ -573,6 +598,7 @@ class Hotellink_integration extends MY_Controller
                 'Action' => 'Set'
             ];
         }
+
         if($extra_child_rate) {
             $rate_package['ExtraChildRate'] = [
                 'Amount' => [

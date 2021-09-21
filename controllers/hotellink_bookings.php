@@ -63,7 +63,9 @@ class Hotellink_bookings extends MY_Controller
 
                 if($oldDate < $cDate)
                 {
-                    $get_refresh_token_data = $this->hotellinkintegration->refresh_token($hotellink_data['email'], $hotellink_data['password']);
+                    $username = getenv("HOTELLINK_USERNAME");
+                    $password = getenv("HOTELLINK_PASSWORD");
+                    $get_refresh_token_data = $this->hotellinkintegration->refresh_token($username, $password);
                     $response = json_decode($get_refresh_token_data);
 
                     if(isset($response->data) && $response->data){
@@ -104,7 +106,7 @@ class Hotellink_bookings extends MY_Controller
     		$ota_x_company = $this->Hotellink_model->get_hotellink_x_company_by_channel($this->ota_key, $this->company_id);
     		if(isset($ota_x_company['ota_property_id']) &&$ota_x_company['ota_property_id']) {
                 $property_id = $ota_x_company['ota_property_id'];
-                $property_key = $ota_x_company['ota_property_key'];
+                $property_key = $get_token_data['email'];
                 $data = array(
                     "StartDate" => date('Y-m-d', time()-86400),
                     "EndDate" => date('Y-m-d', time()+86400),

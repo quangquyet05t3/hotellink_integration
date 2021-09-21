@@ -969,4 +969,25 @@ class Hotellink_model extends CI_Model {
         }
         return null;
     }
+
+    function get_room_type_by_rate_plan_id($rate_plan_id)
+    {
+        $this->db->from('rate_plan as rp');
+        $this->db->join('room_type as rt','rp.room_type_id=rt.id');
+        $this->db->where('rp.rate_plan_id', $rate_plan_id);
+
+        $query = $this->db->get();
+        if ($this->db->_error_message()) // error checking
+        {
+            show_error($this->db->_error_message());
+        }
+
+        if ($query->num_rows >= 1)
+        {
+            $q = $query->result_array();
+            return $q[0];
+        }
+
+        return NULL;
+    }
 }
