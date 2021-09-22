@@ -462,7 +462,7 @@ class Hotellink_integration extends MY_Controller
                 $max_night = $rates['maximum_length_of_stay']>0? $rates['maximum_length_of_stay']: null;
                 $cta = $rates['closed_to_arrival'] == 1 ? "1" : "0";
                 $ctd = $rates['closed_to_departure'] == 1 ? "1" : "0";
-                $stop_sell = $rates['can_be_sold_online'] == "1" ? "0": "1";
+                $stop_sell = $rates['can_be_sold_online'] == 1 ? "0": "1";
                 $extra_adult_rate = null;
                 $extra_child_rate = isset($rates['additional_child_rate']) && $rates['additional_child_rate'] > 0 ? $rates['additional_child_rate']: null;
 
