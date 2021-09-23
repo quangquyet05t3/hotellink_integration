@@ -123,8 +123,6 @@ class Hotellink_bookings extends MY_Controller
             }
     	}
 
-        //$booking_response = json_decode('{"result":true,"data":{"Bookings":[{"NotificationType":"New","BookingId":"OFF4A41628718974","HotelId":"5994c2db-cd76-401c-ba2e-e178ae118a8d","HotelName":"Test Hotel","BookingSource":{"ID":"Offline","Name":"Offline","Action":""},"BookingDate":"2021-08-17T21:56:07","BookingStatus":"Confirmed","Guests":{"Title":"Mr","FirstName":"Quyet","LastName":"Le","Email":"quangquyet05t3@gmail.com","Phone":"+84 98 601 77 05","Address":"22/9A TX01, Thạnh Xuân, Quận 12","City":"Hồ Chí Minh","State":"","Country":"Viet Nam","PostalCode":""},"Rooms":[{"RoomType":"Deluxe King - Best Available Rate","RoomId":"DLXK","RatePlanId":"BAR-DLXK","Quantity":1,"ExtraAdults":0,"ExtraChildren":0,"Adults":1,"Children":0,"Infants":0,"Deposit":216,"Amount":360,"BookingItemStatus":"Confirmed","RoomRate":{"RatePerNights":[{"Date":"2021-08-28","Rate":180},{"Date":"2021-08-29","Rate":180}]}}],"CurrencyISO":"MYR","CheckIn":"2021-08-28","CheckOut":"2021-08-30","Deposit":216,"TaxFee":0,"TaxFeeOnArrival":0,"Discount":0,"Amount":360,"PayAtHotel":true}]},"message":"Success","error":0}');
-
     	$booking_array = array();
         if (isset($booking_response->data->Bookings)){
 
@@ -465,7 +463,6 @@ class Hotellink_bookings extends MY_Controller
 										'update_from' => 'extension'
             									);
 
-				//do_action('update_availability', $update_availability_data);
                 do_action('hotellink_update_availability', $update_availability_data);
 
                 $message .= $msg." ID - ".$response['ota_booking_id']."<br/>";

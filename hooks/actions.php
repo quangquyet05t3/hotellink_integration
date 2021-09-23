@@ -83,34 +83,36 @@ function hotellink_update_availability_fn ($data) {
         //Convert to hotel link request
         $avail_array = $availability_data = $inventories = [];
         foreach ($room_types_avail_array as $key => $value) {
-            $room_id = $value['ota_room_type_id'];
-            //For $inventories
-            $inventory = [];
-            $inventory['RoomId'] = $room_id;
-            //Start $availabilities
-            $availabilities = [];
-            foreach ($value['availability'] as $key1 => $avail) {
-                if(isset($value['ota_room_type_id']) && $value['ota_room_type_id']){
-                    $from = $avail['date_start'];
-                    $to = ($update_from == 'extension' ? Date("Y-m-d", strtotime("-1 day", strtotime($avail['date_end']))) : $avail['date_end']);
-                    if(strtotime($from) > strtotime($to)) {
-                        continue;
-                    }
+            if(isset($value['ota_room_type_id'])) {
+                $room_id = $value['ota_room_type_id'];
+                //For $inventories
+                $inventory = [];
+                $inventory['RoomId'] = $room_id;
+                //Start $availabilities
+                $availabilities = [];
+                foreach ($value['availability'] as $key1 => $avail) {
+                    if(isset($value['ota_room_type_id']) && $value['ota_room_type_id']){
+                        $from = $avail['date_start'];
+                        $to = ($update_from == 'extension' ? Date("Y-m-d", strtotime("-1 day", strtotime($avail['date_end']))) : $avail['date_end']);
+                        if(strtotime($from) > strtotime($to)) {
+                            continue;
+                        }
 
-                    $avail = (int)$avail['availability'];
-                    $availability = [];
-                    $availability['DateRange'] = [
-                        'From' => $from,
-                        'To' => $to
-                    ];
-                    $availability['Quantity'] = $avail;
-                    //$availability['ReleasePeriod'] = $release;
-                    $availability['Action'] = 'Set';
-                    $availabilities[] = $availability;
+                        $avail = (int)$avail['availability'];
+                        $availability = [];
+                        $availability['DateRange'] = [
+                            'From' => $from,
+                            'To' => $to
+                        ];
+                        $availability['Quantity'] = $avail;
+                        //$availability['ReleasePeriod'] = $release;
+                        $availability['Action'] = 'Set';
+                        $availabilities[] = $availability;
+                    }
                 }
+                $inventory['Availabilities'] = $availabilities;
+                $inventories[] = $inventory;
             }
-            $inventory['Availabilities'] = $availabilities;
-            $inventories[] = $inventory;
         }
         $availability_data['Inventories'] = $inventories;
 
