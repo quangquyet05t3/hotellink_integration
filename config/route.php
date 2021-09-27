@@ -11,5 +11,5 @@ $extension_route['deconfigure_hotellink_AJAX'] = 'hotellink_integration/deconfig
 $extension_route['hotellink_update_full_refresh'] = 'hotellink_integration/update_full_refresh';
 $extension_route['cron/hotellink_get_bookings/(:any)'] = 'hotellink_bookings/hotellink_get_bookings/$1';
 $extension_route['hotellink_refresh_token'] = 'hotellink_integration/hotellink_refresh_token';
-$extension_route['hotellink_refresh_token'] = 'hotellink_bookings/hotellink_refresh_token';
+$extension_route['refresh_token'] = 'hotellink_bookings/hotellink_refresh_token';
 

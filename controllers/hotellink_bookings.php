@@ -63,9 +63,7 @@ class Hotellink_bookings extends MY_Controller
 
                 if($oldDate < $cDate)
                 {
-                    $username = getenv("HOTELLINK_USERNAME");
-                    $password = getenv("HOTELLINK_PASSWORD");
-                    $get_refresh_token_data = $this->hotellinkintegration->refresh_token($username, $password);
+                    $get_refresh_token_data = $this->hotellinkintegration->refresh_token();
                     $response = json_decode($get_refresh_token_data);
 
                     if(isset($response->data) && $response->data){

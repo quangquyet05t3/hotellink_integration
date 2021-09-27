@@ -6,12 +6,16 @@ if (!defined('BASEPATH')) {
 
 class HotellinkIntegration
 {
+    public $api_user_name;
+    public $api_pass_word;
+
     function __construct()
     {   
         $this->ci =& get_instance();
         $this->ci->load->model('Hotellink_model');
-
         $this->hotellink_url = ($this->ci->config->item('app_environment') == "development") ? "http://api.hotellinksolutions-staging.com" : "http://api.hotellinksolutions-staging.com";
+        $this->api_user_name = getenv("HOTELLINK_USERNAME");
+        $this->api_pass_word = getenv("HOTELLINK_PASSWORD");
     }
 
     public function call_api($api_url, $method, $data, $headers, $method_type = 'POST'){
@@ -39,7 +43,7 @@ class HotellinkIntegration
         return $response;
     }
 
-    public function signin_hotellink($email, $password){
+    public function signin_hotellink(){
 
         $api_url = $this->hotellink_url;
         $method = '/external/oauth/token';
@@ -47,7 +51,7 @@ class HotellinkIntegration
         $data = array();
 
         $headers = array(
-            "Authorization: Basic ".base64_encode(sprintf('%s:%s', $email, $password))
+            "Authorization: Basic ".base64_encode(sprintf('%s:%s', $this->api_user_name, $this->api_pass_word))
         );
 
         $response = $this->call_api($api_url, $method, $data, $headers);
@@ -55,7 +59,7 @@ class HotellinkIntegration
         return $response;
     }
 
-    public function refresh_token($email, $password){
+    public function refresh_token(){
 
         $api_url = $this->hotellink_url;
         $method = '/external/oauth/token';
@@ -63,7 +67,7 @@ class HotellinkIntegration
         $data = array();
 
         $headers = array(
-            "Authorization: Basic ".base64_encode(sprintf('%s:%s', $email, $password))
+            "Authorization: Basic ".base64_encode(sprintf('%s:%s', $this->api_user_name, $this->api_pass_word))
         );
 
         $response = $this->call_api($api_url, $method, $data, $headers);
