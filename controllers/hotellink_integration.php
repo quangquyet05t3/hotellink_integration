@@ -332,7 +332,7 @@ class Hotellink_integration extends MY_Controller
     }
 
     function update_full_refresh(){
-        $start_date = date("Y-m-d");
+        $start_date = gmdate("Y-m-d");
         $end_date = Date("Y-m-d", strtotime("+365 days", strtotime($start_date)));
 
         $this->hotellink_update_availability($start_date, $end_date);
