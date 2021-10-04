@@ -393,10 +393,11 @@ class Hotellink_integration extends MY_Controller
 
         $ota_x_company = $this->Hotellink_model->get_hotellink_x_company_by_channel($this->ota_key, $this->company_id);
         $property_id = $ota_x_company['ota_property_id'] ;
+        $ota_x_company_id = $ota_x_company['ota_x_company_id'] ;
         $property_key = $get_token_data['email'] ;
 
         if($rate_plan_id) {
-            $rate_plan_data = $this->Hotellink_model->get_hotellink_rate_plans_by_id($rate_plan_id);
+            $rate_plan_data = $this->Hotellink_model->get_hotellink_rate_plans_by_id($rate_plan_id, $this->company_id, $ota_x_company_id);
 
             $rate_array['values'] = $rate_data = array();
             if($property_id){
@@ -440,7 +441,7 @@ class Hotellink_integration extends MY_Controller
             }
         }
         else {
-            $rate_plan_data = $this->Hotellink_model->get_hotellink_rate_plans_by_id();
+            $rate_plan_data = $this->Hotellink_model->get_hotellink_rate_plans_by_id(null, $this->company_id, $ota_x_company_id);
 
             $minical_rates = array();
             foreach($rate_plan_data as $key => $rate_plan){
