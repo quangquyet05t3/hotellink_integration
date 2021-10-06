@@ -13,7 +13,7 @@ class HotellinkIntegration
     {   
         $this->ci =& get_instance();
         $this->ci->load->model('Hotellink_model');
-        $this->hotellink_url = ($this->ci->config->item('app_environment') == "development") ? "http://api.hotellinksolutions-staging.com" : "http://api.hotellinksolutions-staging.com";
+        $this->hotellink_url = ($this->ci->config->item('app_environment') == "development") ? "https://api.hotellinksolutions-staging.com" : "https://api.hotellinksolutions-staging.com";
         $this->api_user_name = getenv("HOTELLINK_USERNAME");
         $this->api_pass_word = getenv("HOTELLINK_PASSWORD");
     }
