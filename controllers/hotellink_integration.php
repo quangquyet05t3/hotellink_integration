@@ -185,6 +185,7 @@ class Hotellink_integration extends MY_Controller
 
         $hotellink_prop_data = $this->Hotellink_model->get_properties_by_company_id($this->company_id, $hotellink_id);
         $get_token_data = $this->Hotellink_model->get_token($hotellink_id);
+
         if($hotellink_prop_data){
 
         } else {
@@ -513,7 +514,7 @@ class Hotellink_integration extends MY_Controller
             echo 'rates resp = ';prx($response, 1);
         }
 
-         if(!empty($response['data']) && $response['meta']['message'] == 'Success')
+         if(!empty($response['message']) && $response['message'] == 'Success')
          	echo json_encode(array('success' => true));
     }
 
