@@ -72,7 +72,7 @@ class Hotellink_integration extends MY_Controller
         $data['company_id'] = $this->company_id;
         $data['main_content'] = '../extensions/'.$this->module_name.'/views/hotellink_authentication';
         $ota_id = $this->Hotellink_model->get_ota_id($this->ota_key);
-        $data['hotellink_data'] = $this->Hotellink_model->get_hotellink_data($ota_id);
+        $data['hotellink_data'] = $this->Hotellink_model->get_hotellink_data($this->company_id, $this->ota_key);
         $this->template->load('bootstrapped_template', null , $data['main_content'], $data);
     }
 
@@ -251,7 +251,9 @@ class Hotellink_integration extends MY_Controller
 
             foreach ($data['hotellink_room_types'] as $key => $value) {
                 foreach ($data['hotellink_room_types_rate_plans'] as $key1 => $value1) {
-                    $data['hotellink_room_types_rate_plans'][$key1]['minical_room_type_id'] = $data['hotellink_room_types'][$key1]['minical_room_type_id'];
+                    if($value['ota_room_type_id'] == $value1['room_type_id']){
+                        $data['hotellink_room_types_rate_plans'][$key1]['minical_room_type_id'] = $value['minical_room_type_id'];
+                    }
                 }
             }
 
